@@ -1,0 +1,3 @@
+As a potential investor of Monolith Inc,
+I want to be able to aquire free tokens for eventual exchange for shares in Monoloth INC
+

@@ -1,0 +1,12 @@
+As a potential investor *holding Monolith tokens*, I want to be able to register my tokens for exchange for shares in Monolith Inc
+
+User flow:
+Select account with MetaMask
+Go to 'exchange'
+Enter number of tokens to register for exchange
+Click submit
+
+Implementation:
+Exchange contract
+*  add address, number of tokens, number of shares to array
+*  
