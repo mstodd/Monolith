@@ -1,0 +1,24 @@
+Get the app working by doing the following:
+
+Go to app folder
+
+Start testrpc:
+testrpc
+
+Migrate contracts:
+truffle migrate
+
+Start UI server:
+npm start
+
+Start API server:
+npm run start-server
+
+Notes:
+*  MetaMask is an optional bonus
+*  
+
+If you have issues:
+*  Ensure that if you're using MetaMask, you have the testrpc selected
+*  If transactions still fail, try switching to another network, then switch back
+    https://stackoverflow.com/questions/45403644/the-tx-doesnt-have-the-correct-nonce-account-has-nonce-of-5-tx-has-nonce-of

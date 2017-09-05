@@ -22,6 +22,10 @@ contract MonolithToken is ERC20Interface {
         amountPerDrip = 3;
     }
 
+    function remainingSupply() constant returns (uint256 supply) {
+        return supplyRemaining;
+    }
+
     modifier adminOnly() {
         require(msg.sender == administrator);
         _;

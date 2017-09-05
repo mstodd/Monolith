@@ -1,7 +1,10 @@
 import React, { Component } from 'react'
 import SimpleStorageContract from '../build/contracts/SimpleStorage.json'
+import MonolithTokenContract from '../build/contracts/MonolithToken.json'
 import getWeb3 from './utils/getWeb3'
 import {AccountSelector} from './components/AccountSelector.js'
+import {AccountsList} from './components/AccountsList.js'
+import {TokenSupply} from './components/TokenSupply.js'
 
 import './css/oswald.css'
 import './css/open-sans.css'
@@ -16,13 +19,15 @@ class App extends Component {
       storageValue: 0,
       web3: null,
       selectedAccountAddress: null,
-      accounts: []
+      accounts: [],
+      totalSupply: '',
+      remainingSupply: ''
     }
 
     this.simpleStorageInstance = null;
+    this.tokenInstance = null;
     this.handleAccountSelected = this.handleAccountSelected.bind(this);
   }
-  
 
   componentWillMount() {
     // Get network provider and web3 instance.
@@ -51,8 +56,11 @@ class App extends Component {
     var self = this;
 
     const contract = require('truffle-contract')
-    const simpleStorage = contract(SimpleStorageContract)
-    simpleStorage.setProvider(this.state.web3.currentProvider)
+    const simpleStorage = contract(SimpleStorageContract);
+    const token = contract(MonolithTokenContract);
+    simpleStorage.setProvider(this.state.web3.currentProvider);
+    token.setProvider(this.state.web3.currentProvider);
+
 
     // Declaring this for later so we can chain functions on SimpleStorage.
     //var simpleStorageInstance;
@@ -63,17 +71,24 @@ class App extends Component {
       this.setSelectedAccount(this.state.accounts[0]);
       simpleStorage.deployed().then((instance) => {
         self.simpleStorageInstance = instance;
-
-        // Stores a given value, 5 by default.
-        //return self.simpleStorageInstance.set(8, { from: self.state.selectedAccountAddress });
         return self.storeValue(9);
-      })/*.then((result) => {
-        // Get the value from the contract to prove it worked.
-        return self.simpleStorageInstance.get.call(accounts[0])
-      }).then((result) => {
-        // Update state with the result.
-        return this.setState({ storageValue: result.c[0] })
-      })*/
+      }).then(() => {
+        return token.deployed();
+      }).then((instance) => {
+        self.tokenInstance = instance;
+        return self.updateTokenValues();
+      });
+    });
+  }
+
+  updateTokenValues() {
+    var self = this;
+
+    return this.tokenInstance.remainingSupply.call().then((result) => {
+      this.setState({remainingSupply: result.c[0]});
+      return self.tokenInstance.totalSupply.call();
+    }).then((result) => {
+      this.setState({totalSupply: result.c[0]});
     });
   }
 
@@ -114,15 +129,14 @@ class App extends Component {
     return (
       <div className="App">
         <nav className="navbar pure-menu pure-menu-horizontal">
-            <a href="#" className="pure-menu-heading pure-menu-link">Truffle Box</a>
+            <a href="#" className="pure-menu-heading pure-menu-link">Monolith INC</a>
         </nav>
 
         <main className="container">
           <div className="pure-g">
             <div className="pure-u-1-1">
-              <h1>Good to Go!</h1>
-              <p>Your Truffle Box is installed and ready.</p>
-              <h2>Smart Contract Example</h2>
+              <h1>Start investing in The Monolith!</h1>
+              <TokenSupply total={this.state.totalSupply} remaining={this.state.remainingSupply}></TokenSupply>
               <p>If your contracts compiled and migrated successfully, below will show a stored value of 5 (by default).</p>
               <p>Try changing the value stored on <strong>line 59</strong> of App.js.</p>
               <p>The stored value is: {this.state.storageValue}</p>
@@ -137,6 +151,7 @@ class App extends Component {
                 );
               })}
             </div>
+            <AccountsList selectedAddress={self.state.selectedAccountAddress} onAccountSelected={self.handleAccountSelected} addresses={self.state.accounts}></AccountsList>
         </main>
       </div>
     );
