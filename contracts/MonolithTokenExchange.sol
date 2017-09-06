@@ -17,4 +17,6 @@ contract MonolithTokenExchange {
     function buyShares(uint256 tokenCount) returns (bool success) {
         return true;
     }
+
+    event SharesExchanged(uint256 tokenCount, uint256 shareCount);
 }

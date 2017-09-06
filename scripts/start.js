@@ -26,6 +26,32 @@ var useYarn = pathExists.sync(paths.yarnLockFile);
 var cli = useYarn ? 'yarn' : 'npm';
 var isInteractive = process.stdout.isTTY;
 
+var mongoose = require('mongoose');
+var Bear = require('../models/bear');
+var Web3 = require('Web3');
+var web3 = new Web3(new Web3.providers.HttpProvider("http://localhost:8545"));
+web3.eth.defaultAccount = web3.eth.accounts[0];
+var contract = require('truffle-contract')
+
+function startFaucetTimer() {
+  const token = require('../build/contracts/MonolithToken.json')
+  let TokenContract = contract(token);
+  TokenContract.setProvider(web3.currentProvider); 
+
+  TokenContract.deployed()
+  .then(function(instance){
+    setInterval(function() {
+      instance.openFaucet({from: web3.eth.accounts[0]}).then((success) => {
+        console.info("drip");
+      });
+    }, 1000 * 60);
+  });
+}
+
+mongoose.connect('mongodb://localhost:27017/monolith', {
+    useMongoClient: true,
+  });
+
 // Warn and crash if required files are missing
 if (!checkRequiredFiles([paths.appHtml, paths.appIndexJs])) {
   process.exit(1);
@@ -286,6 +312,7 @@ function run(port) {
   var host = process.env.HOST || 'localhost';
   setupCompiler(host, port, protocol);
   runDevServer(host, port, protocol);
+  startFaucetTimer();
 }
 
 // We attempt to use the default port but if it is busy, we offer the user to
