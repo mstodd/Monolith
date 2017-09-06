@@ -161,15 +161,6 @@ class App extends Component {
               <Balances tokenCount={this.state.tokenBalance} sharesCount={this.state.sharesBalance} onExchangeClicked={this.handleExchangeTokens}></Balances>
             </div>
           </div>
-          <div className="">
-              {Object.keys(self.state.accounts).map(function(account) {
-                return (
-                  <div style={{display: 'block'}} key={self.state.accounts[account]}>
-                    <AccountSelector isSelected={self.state.selectedAccountAddress == self.state.accounts[account]} onAccountSelected={self.handleAccountSelected} address={self.state.accounts[account]} />
-                  </div>
-                );
-              })}
-            </div>
             <AccountsList selectedAddress={self.state.selectedAccountAddress} onAccountSelected={self.handleAccountSelected} addresses={self.state.accounts}></AccountsList>
         </main>
       </div>

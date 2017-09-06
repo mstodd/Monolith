@@ -14,12 +14,11 @@ npm start
 
 When browser opens:
 Lock, then re-open MetaMask with new mneumonic
-
-Notes:
-*  MetaMask is an optional bonus
-*  
+Add two more accounts into MetaMask
+Register for free tokens with the second and third accounts (refresh page after switching account)
 
 If you have issues:
 *  Ensure that if you're using MetaMask, you have the testrpc selected
+*  When switching accounts in MetaMask, refresh page after switching account
 *  If transactions still fail, try switching to another network, then switch back
     https://stackoverflow.com/questions/45403644/the-tx-doesnt-have-the-correct-nonce-account-has-nonce-of-5-tx-has-nonce-of

@@ -7,6 +7,8 @@ module.exports = function(deployer) {
     return deployer.deploy(MonolithExchange, MonolithToken.address);
   })
   .then(() => {
-    debugger;
+    console.info('foo' + MonolithExchange.address);
+    return MonolithToken.deployed()
+      .then((instance) => instance.setExchangeContractAddress(MonolithExchange.address));
   });
 };

@@ -10,7 +10,7 @@ contract MonolithToken is ERC20Interface {
     uint256 supplyRemaining;
     mapping(address => mapping(address => uint)) allowed;
 
-    address exchangeContractAddress;
+    address public exchangeContractAddress;
     address public administrator;
     uint amountPerDrip;
     uint totalPending;
