@@ -1,9 +1,12 @@
 import React, { Component } from 'react'
 import MonolithTokenContract from '../build/contracts/MonolithToken.json'
+import MonolithTokenExchangeContract from '../build/contracts/MonolithTokenExchange.json'
 import getWeb3 from './utils/getWeb3'
 import {AccountSelector} from './components/AccountSelector.js'
 import {AccountsList} from './components/AccountsList.js'
 import {TokenSupply} from './components/TokenSupply.js'
+import {FaucetRegistration} from './components/FaucetRegistration.js'
+import {Balances} from './components/Balances.js'
 
 import './css/oswald.css'
 import './css/open-sans.css'
@@ -21,20 +24,33 @@ class App extends Component {
       selectedAccountAddress: null,
       accounts: [],
       totalSupply: '',
-      remainingSupply: ''
+      remainingSupply: '',
+      balance: '',
+      tokenBalance: 0,
+      sharesBalance: 0,
+      tokenAdmin: ''
     }
 
     this.tokenInstance = null;
+    this.tokenExchangeInstance = null;
     this.handleAccountSelected = this.handleAccountSelected.bind(this);
+    this.handleFaucetRegistrationClicked = this.handleFaucetRegistrationClicked.bind(this);
+    this.handleExchangeTokens = this.handleExchangeTokens.bind(this);
+  }
+
+  handleFaucetRegistrationClicked() {
+    this.tokenInstance.registerFaucetRecipient({from: this.state.selectedAccountAddress})
+      .then((success) =>{
+
+      });
   }
 
   componentWillMount() {
-
     getWeb3.then(results => {
       this.setState({
         web3: results.web3
       });
-      this.instantiateContract()
+      return this.instantiateContract();
     })
     .catch(() => {
       console.log('Error finding web3.')
@@ -47,14 +63,30 @@ class App extends Component {
     const token = contract(MonolithTokenContract);
     token.setProvider(this.state.web3.currentProvider);
 
-    this.state.web3.eth.getAccounts((error, accounts) => {
+    const tokenExchange = contract(MonolithTokenExchangeContract);
+    tokenExchange.setProvider(this.state.web3.currentProvider);
+
+    return this.state.web3.eth.getAccounts((error, accounts) => {
       this.state.accounts = accounts;
       this.setSelectedAccount(this.state.accounts[0]);
-        token.deployed()
-      .then((instance) => {
-        self.tokenInstance = instance;
-        return self.updateTokenValues();
+        return token.deployed()
+      .then((tokenInstance) => {
+        self.tokenInstance = tokenInstance;
+        return tokenExchange.deployed();
+      })
+      .then((exchangeInstance) => {
+        self.tokenExchangeInstance = exchangeInstance;
+        self.startBalanceUpdater();
+        self.updateTokenValues();
+        return self.updateTokenAdmin();
       });
+    });
+  }
+
+  updateTokenAdmin() {
+    var self = this;
+    return this.tokenInstance.administrator.call().then((result) => {
+      self.setState({tokenAdmin: result});
     });
   }
 
@@ -65,7 +97,29 @@ class App extends Component {
       this.setState({remainingSupply: result.c[0]});
       return self.tokenInstance.totalSupply.call();
     }).then((result) => {
-      this.setState({totalSupply: result.c[0]});
+      return this.setState({totalSupply: result.c[0]});
+    });
+  }
+
+  startBalanceUpdater() {
+    var self = this;
+    self.updateBalances();
+    setInterval(function updateBalancesInterval() {
+      self.updateBalances();
+    }, 1000 * 30);
+  }
+
+  updateBalances() {
+    var self = this;
+    this.tokenInstance.balanceOf.call(this.state.selectedAccountAddress).then((result) => {
+      self.setState({tokenBalance: result.c[0]});
+    });
+  }
+
+  handleExchangeTokens() {
+    var self = this;
+    this.exchangeInstance.buyShares(this.state.tokenBalance, {from: this.state.selectedAccountAddress}).then((result) => {
+      return self.updateBalances();
     });
   }
 
@@ -103,6 +157,8 @@ class App extends Component {
             <div className="pure-u-1-1">
               <h1>Start investing in The Monolith!</h1>
               <TokenSupply total={this.state.totalSupply} remaining={this.state.remainingSupply}></TokenSupply>
+              <FaucetRegistration onRegisterClicked={this.handleFaucetRegistrationClicked}></FaucetRegistration>
+              <Balances tokenCount={this.state.tokenBalance} sharesCount={this.state.sharesBalance} onExchangeClicked={this.handleExchangeTokens}></Balances>
             </div>
           </div>
           <div className="">

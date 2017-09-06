@@ -42,9 +42,8 @@ function startFaucetTimer() {
   .then(function(instance){
     setInterval(function() {
       instance.openFaucet({from: web3.eth.accounts[0]}).then((success) => {
-        console.info("drip");
       });
-    }, 1000 * 60);
+    }, 1000 * 30);
   });
 }
 

@@ -5,7 +5,6 @@ export class AccountsList extends React.Component {
   constructor(props) {
     super(props);
 
-    // This binding is necessary to make `this` work in the callback
     this.handleAccountSelected = this.handleAccountSelected.bind(this);
   }
 
@@ -20,7 +19,7 @@ export class AccountsList extends React.Component {
             {self.props.addresses.length > 0 && Object.keys(self.props.addresses).map(function(address) {
             return (
                 <div style={{display: 'block'}} key={self.props.addresses[address]}>
-                <AccountSelector isSelected={self.props.selectedAddress == self.props.addresses[address]} onAccountSelected={self.handleAccountSelected} address={self.props.addresses[address]} />
+                <AccountSelector isSelected={self.props.selectedAddress === self.props.addresses[address]} onAccountSelected={self.handleAccountSelected} address={self.props.addresses[address]} />
                 </div>
             );
             })}

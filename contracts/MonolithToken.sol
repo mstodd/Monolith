@@ -10,7 +10,8 @@ contract MonolithToken is ERC20Interface {
     uint256 supplyRemaining;
     mapping(address => mapping(address => uint)) allowed;
 
-    address administrator;
+    address exchangeContractAddress;
+    address public administrator;
     uint amountPerDrip;
     uint totalPending;
     address[] addressesWaiting;
@@ -20,6 +21,15 @@ contract MonolithToken is ERC20Interface {
         supply = 2001;
         supplyRemaining = 2001;
         amountPerDrip = 3;
+    }
+
+    function setExchangeContractAddress(address exchangeAddress) constant returns (bool success) {
+        if(msg.sender == administrator) {
+            exchangeContractAddress = exchangeAddress;
+            return true;
+        } else {
+            return false;
+        }
     }
 
     function remainingSupply() constant returns (uint256 supply) {
@@ -83,23 +93,46 @@ contract MonolithToken is ERC20Interface {
         }
     }
 
+    function drip(address to, uint amount) returns (bool success) {
+        if(supplyRemaining >= amount) {
+            balances[to] += amount;
+            supplyRemaining -= amount;
+            
+            return true;
+        } else {
+            return false;
+        }
+    }
+
     function drip(address to) private returns (bool success) {
         if(supplyRemaining < 500) {
-             
+            return drip(to, 1);
         } else if(supplyRemaining < 1000 ) {
-
+            return drip(to, 2);
         } else {
-
+            return drip(to, 3);
         }
 
         return false;
     }
 
     function openFaucet() returns (bool success) {
-        return false;
+        for(uint i = 0; i < addressesWaiting.length; i++) {
+            drip(addressesWaiting[i]);
+        }
+        
+        return true;
     }
 
     function registerFaucetRecipient() returns (bool success) {
-        return false;
+        for(uint i = 0; i < addressesWaiting.length; i++) {
+            if (addressesWaiting[i] == msg.sender) {
+                return false;
+            }
+        }
+
+        addressesWaiting.push(msg.sender);
+
+        return true;
     }
 }

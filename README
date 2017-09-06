@@ -4,6 +4,7 @@ Go to app folder
 
 Start testrpc:
 testrpc
+copy/paste mneumonic into text editor
 
 Migrate contracts:
 truffle migrate
@@ -11,8 +12,8 @@ truffle migrate
 Start UI server:
 npm start
 
-Start API server:
-npm run start-server
+When browser opens:
+Lock, then re-open MetaMask with new mneumonic
 
 Notes:
 *  MetaMask is an optional bonus
