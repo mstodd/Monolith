@@ -27,7 +27,7 @@ var cli = useYarn ? 'yarn' : 'npm';
 var isInteractive = process.stdout.isTTY;
 
 var mongoose = require('mongoose');
-var Bear = require('../models/bear');
+var TokenForSharesTransaction = require('../models/TokenForSharesTransaction');
 var Web3 = require('Web3');
 var web3 = new Web3(new Web3.providers.HttpProvider("http://localhost:8545"));
 web3.eth.defaultAccount = web3.eth.accounts[0];
@@ -39,11 +39,32 @@ function startFaucetTimer() {
   TokenContract.setProvider(web3.currentProvider); 
 
   TokenContract.deployed()
-  .then(function(instance){
+  .then((instance) => {
     setInterval(function() {
       instance.openFaucet({from: web3.eth.accounts[0]}).then((success) => {
       });
     }, 1000 * 30);
+  });
+}
+
+function registerTokenExchangeLogger() {
+  const exchange = require('../build/contracts/MonolithTokenExchange.json')
+  let TokenExchangeContract = contract(exchange);
+  TokenExchangeContract.setProvider(web3.currentProvider);
+
+  TokenExchangeContract.deployed()
+  .then((exchange) => {
+    exchange.SharesExchanged().watch((error, result) => {
+      var transaction = new TokenForSharesTransaction();
+
+      transaction.buyerAddress = result.args.buyer;
+      transaction.tokenCount = result.args.tokenCount;
+      transaction.sharesCount = result.args.sharesCount;
+
+      transaction.save(function(err) {
+          console.info('Transaction logged');
+      });
+    });
   });
 }
 
@@ -312,6 +333,7 @@ function run(port) {
   setupCompiler(host, port, protocol);
   runDevServer(host, port, protocol);
   startFaucetTimer();
+  registerTokenExchangeLogger();
 }
 
 // We attempt to use the default port but if it is busy, we offer the user to

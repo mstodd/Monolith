@@ -10,7 +10,6 @@ contract MonolithToken is ERC20Interface {
     uint256 supplyRemaining;
     mapping(address => mapping(address => uint)) allowed;
 
-    address public exchangeContractAddress;
     address public administrator;
     uint amountPerDrip;
     uint totalPending;
@@ -21,15 +20,6 @@ contract MonolithToken is ERC20Interface {
         supply = 2001;
         supplyRemaining = 2001;
         amountPerDrip = 3;
-    }
-
-    function setExchangeContractAddress(address exchangeAddress) constant returns (bool success) {
-        if(msg.sender == administrator) {
-            exchangeContractAddress = exchangeAddress;
-            return true;
-        } else {
-            return false;
-        }
     }
 
     function remainingSupply() constant returns (uint256 supply) {

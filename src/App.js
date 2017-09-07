@@ -113,14 +113,21 @@ class App extends Component {
     var self = this;
     this.tokenInstance.balanceOf.call(this.state.selectedAccountAddress).then((result) => {
       self.setState({tokenBalance: result.c[0]});
+      return self.tokenExchangeInstance.getPurchasedSharesCount.call(self.state.selectedAccountAddress);
+    }).then((exchangeResult) => {
+      self.setState({sharesBalance: exchangeResult.c[0]});
     });
   }
 
   handleExchangeTokens() {
     var self = this;
-    this.exchangeInstance.buyShares(this.state.tokenBalance, {from: this.state.selectedAccountAddress}).then((result) => {
-      return self.updateBalances();
-    });
+    this.tokenInstance.approve(this.tokenExchangeInstance.address, this.state.tokenBalance, {from: this.state.selectedAccountAddress})
+      .then((result) => {
+        return self.tokenExchangeInstance.buyShares(self.state.tokenBalance, {from: self.state.selectedAccountAddress});
+      })
+      .then((result) => {
+          return self.updateBalances();
+      });
   }
 
   handleAccountSelected(event, account){
@@ -158,7 +165,7 @@ class App extends Component {
               <h1>Start investing in The Monolith!</h1>
               <TokenSupply total={this.state.totalSupply} remaining={this.state.remainingSupply}></TokenSupply>
               <FaucetRegistration onRegisterClicked={this.handleFaucetRegistrationClicked}></FaucetRegistration>
-              <Balances tokenCount={this.state.tokenBalance} sharesCount={this.state.sharesBalance} onExchangeClicked={this.handleExchangeTokens}></Balances>
+              <Balances tokenCount={this.state.tokenBalance} sharesCount={this.state.sharesBalance} handleTokenExchange={this.handleExchangeTokens}></Balances>
             </div>
           </div>
             <AccountsList selectedAddress={self.state.selectedAccountAddress} onAccountSelected={self.handleAccountSelected} addresses={self.state.accounts}></AccountsList>
