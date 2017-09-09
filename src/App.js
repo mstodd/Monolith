@@ -7,6 +7,7 @@ import {AccountsList} from './components/AccountsList.js'
 import {TokenSupply} from './components/TokenSupply.js'
 import {FaucetRegistration} from './components/FaucetRegistration.js'
 import {Balances} from './components/Balances.js'
+import {ExecuteTrades} from './components/ExecuteTrades.js'
 
 import './css/oswald.css'
 import './css/open-sans.css'
@@ -36,6 +37,14 @@ class App extends Component {
     this.handleAccountSelected = this.handleAccountSelected.bind(this);
     this.handleFaucetRegistrationClicked = this.handleFaucetRegistrationClicked.bind(this);
     this.handleExchangeTokens = this.handleExchangeTokens.bind(this);
+    this.executePendingTrades = this.executePendingTrades.bind(this);
+  }
+
+  executePendingTrades() {
+    this.tokenExchangeInstance.executeBuys(0, {from: this.state.selectedAccountAddress})
+      .then((success) => {
+
+      });
   }
 
   handleFaucetRegistrationClicked() {
@@ -83,10 +92,22 @@ class App extends Component {
     });
   }
 
+  setTokenAdmin(adminAddress){
+    this.setState({tokenAdmin: adminAddress});
+
+    this.setState({isAdmin: this.state.tokenAdmin === this.state.selectedAccountAddress});
+  }
+
+  setSelectedAccount(accountAddress) {
+    this.setState({selectedAccountAddress: accountAddress});
+
+    this.setState({isAdmin: this.state.tokenAdmin === this.state.selectedAccountAddress});
+  }
+
   updateTokenAdmin() {
     var self = this;
     return this.tokenInstance.administrator.call().then((result) => {
-      self.setState({tokenAdmin: result});
+      self.setTokenAdmin(result);
     });
   }
 
@@ -123,7 +144,7 @@ class App extends Component {
     var self = this;
     this.tokenInstance.approve(this.tokenExchangeInstance.address, this.state.tokenBalance, {from: this.state.selectedAccountAddress})
       .then((result) => {
-        return self.tokenExchangeInstance.buyShares(self.state.tokenBalance, {from: self.state.selectedAccountAddress});
+        return self.tokenExchangeInstance.registerTrade(self.state.tokenBalance, {from: self.state.selectedAccountAddress});
       })
       .then((result) => {
           return self.updateBalances();
@@ -134,41 +155,42 @@ class App extends Component {
     this.setSelectedAccount(account.state.address);
   }
 
-  setSelectedAccount(accountAddress){
-    var self = this;
-    if(this.simpleStorageInstance){
-      this.simpleStorageInstance.get.call(accountAddress, {from: accountAddress})
-          .then((result) => {
-            return self.setState({
-              storageValue: result.c[0],
-              selectedAccountAddress: accountAddress
-            });
-          })
-    } else {
-      self.setState({
-        selectedAccountAddress: accountAddress
-      });
-    }
+  formatAddress(address) {
+    return address ? address.substring(0, 6) + '...' : '';
   }
 
   render() {
     var self = this;
+    var userType = this.state.isAdmin ? "admin" : "investor";
     return (
       <div className="App">
         <nav className="navbar pure-menu pure-menu-horizontal">
             <a href="#" className="pure-menu-heading pure-menu-link">Monolith INC</a>
+            <span style={{color:'white'}}>Current address: {self.formatAddress(this.state.selectedAccountAddress)} ({userType})</span>            
         </nav>
 
         <main className="container">
           <div className="pure-g">
             <div className="pure-u-1-1">
-              <h1>Start investing in The Monolith!</h1>
+              {
+                this.state.isAdmin ?
+                <h1>Distribute Shares to the Public</h1> :
+                <h1>Start investing in the Monolith</h1>
+              }
               <TokenSupply total={this.state.totalSupply} remaining={this.state.remainingSupply}></TokenSupply>
-              <FaucetRegistration onRegisterClicked={this.handleFaucetRegistrationClicked}></FaucetRegistration>
-              <Balances tokenCount={this.state.tokenBalance} sharesCount={this.state.sharesBalance} handleTokenExchange={this.handleExchangeTokens}></Balances>
+              {
+                this.state.isAdmin ?
+                <ExecuteTrades onExecuteClicked={this.executePendingTrades}></ExecuteTrades> :
+                <div>
+                  <FaucetRegistration onRegisterClicked={this.handleFaucetRegistrationClicked}></FaucetRegistration>
+                  <Balances tokenCount={this.state.tokenBalance} sharesCount={this.state.sharesBalance} handleTokenExchange={this.handleExchangeTokens}></Balances>
+                </div>
+              }
             </div>
           </div>
+          { this.state.accounts.length > 1 &&
             <AccountsList selectedAddress={self.state.selectedAccountAddress} onAccountSelected={self.handleAccountSelected} addresses={self.state.accounts}></AccountsList>
+          }
         </main>
       </div>
     );
