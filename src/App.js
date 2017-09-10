@@ -1,4 +1,4 @@
-import React, { Component } from 'react'
+import React, {Component} from 'react'
 import MonolithTokenContract from '../build/contracts/MonolithToken.json'
 import MonolithTokenExchangeContract from '../build/contracts/MonolithTokenExchange.json'
 import getWeb3 from './utils/getWeb3'
@@ -151,8 +151,8 @@ class App extends Component {
       });
   }
 
-  handleAccountSelected(event, account){
-    this.setSelectedAccount(account.state.address);
+  handleAccountSelected(event, accountAddress){
+    this.setSelectedAccount(accountAddress);
   }
 
   formatAddress(address) {
