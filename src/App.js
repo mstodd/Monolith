@@ -41,7 +41,10 @@ class App extends Component {
   }
 
   executePendingTrades() {
-    this.tokenExchangeInstance.executeBuys(0, {from: this.state.selectedAccountAddress})
+    this.tokenExchangeInstance.executeBuys({
+      from: this.state.selectedAccountAddress,
+      gas: 200000
+    })
       .then((success) => {
 
       });
@@ -77,7 +80,6 @@ class App extends Component {
 
     return this.state.web3.eth.getAccounts((error, accounts) => {
       this.state.accounts = accounts;
-      this.setSelectedAccount(this.state.accounts[0]);
         return token.deployed()
       .then((tokenInstance) => {
         self.tokenInstance = tokenInstance;
@@ -85,6 +87,7 @@ class App extends Component {
       })
       .then((exchangeInstance) => {
         self.tokenExchangeInstance = exchangeInstance;
+        this.setSelectedAccount(this.state.accounts[0]);
         self.startBalanceUpdater();
         self.updateTokenValues();
         return self.updateTokenAdmin();
@@ -93,15 +96,18 @@ class App extends Component {
   }
 
   setTokenAdmin(adminAddress){
-    this.setState({tokenAdmin: adminAddress});
-
-    this.setState({isAdmin: this.state.tokenAdmin === this.state.selectedAccountAddress});
+    this.setState({
+      tokenAdmin: adminAddress,
+      isAdmin: adminAddress === this.state.selectedAccountAddress
+    });
   }
 
   setSelectedAccount(accountAddress) {
-    this.setState({selectedAccountAddress: accountAddress});
-
-    this.setState({isAdmin: this.state.tokenAdmin === this.state.selectedAccountAddress});
+    this.setState({
+      selectedAccountAddress: accountAddress,
+      isAdmin: this.state.tokenAdmin === accountAddress
+    });
+    return this.updateBalances();
   }
 
   updateTokenAdmin() {
